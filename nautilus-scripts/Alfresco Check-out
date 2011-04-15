@@ -1,0 +1,17 @@
+#!/bin/sh
+##########################################
+# Checkout an Alfresco document via Nautilus.
+# 2011/04/15
+# Nicolas Raoul - Aegif
+##########################################
+# Instructions:
+# Install checked.sh
+# Place this script in your ~/.gnome2/nautilus-scripts
+# Now an action appears in Nautilus' context menu.
+##########################################
+# TODO
+# - Remove absolute path to checked.sh, possibly by merging into a single script.
+##########################################
+
+FULL_FILE_PATH=${NAUTILUS_SCRIPT_SELECTED_FILE_PATHS}
+/home/nico/src/AlfrescoLinuxMacCheckInOut/checkout.sh ${FULL_FILE_PATH}
