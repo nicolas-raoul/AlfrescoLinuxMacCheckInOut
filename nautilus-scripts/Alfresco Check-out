@@ -5,13 +5,42 @@
 # Nicolas Raoul - Aegif
 ##########################################
 # Instructions:
-# Install checked.sh
 # Place this script in your ~/.gnome2/nautilus-scripts
 # Now an action appears in Nautilus' context menu.
 ##########################################
 # TODO
-# - Remove absolute path to checked.sh, possibly by merging into a single script.
+# - Server and login/password are hard-coded
+# - Check whether it works for filenames with spaces
 ##########################################
 
-FULL_FILE_PATH=${NAUTILUS_SCRIPT_SELECTED_FILE_PATHS}
-/home/nico/src/AlfrescoLinuxMacCheckInOut/checkout.sh ${FULL_FILE_PATH}
+URI=${NAUTILUS_SCRIPT_SELECTED_URIS}
+#URI="dav://admin@localhost:8080/alfresco/webdav/User%20Homes/leo/test.txt"
+#URI="dav://admin@localhost:8080/alfresco/webdav/t/AlfrescoLinuxMacCheckInOut/eclipse.sh"
+echo "Alfresco WebDAV URI: $URI"
+
+# Build Alfresco CMIS URL from Alfresco WebDAV URI
+URL=$(echo $URI | sed -e "s/.*alfresco\/webdav\///g")
+URL="http://localhost:8080/alfresco/s/cmis/p/$URL"
+echo "Alfresco CMIS URL: $URL"
+curl -uadmin:admin "$URL" > /tmp/output
+NODEREF=$(grep "<cmis:propertyId propertyDefinitionId=\"cmis:objectId\"" /tmp/output | sed -e "s/.*<cmis:value>//g" -e "s/<.*//g")
+echo "Alfresco Noderef: $NODEREF"
+# "workspace://SpacesStore/ebc57ec5-e817-4aa4-9217-936b3f355048"
+
+echo "<?xml version=\"1.0\" encoding=\"utf-8\"?>
+<entry xmlns=\"http://www.w3.org/2005/Atom\" xmlns:cmisra=\"http://docs.oasis-open.org/ns/cmis/restatom/200908/\" xmlns:cmis=\"http://docs.oasis-open.org/ns/cmis/core/200908/\">
+<cmisra:object>
+<cmis:properties>
+<cmis:propertyId propertyDefinitionId=\"cmis:objectId\">
+<cmis:value>${NODEREF}</cmis:value>
+</cmis:propertyId>
+</cmis:properties>
+</cmisra:object>
+</entry>
+" > /tmp/atomentry.xml
+
+curl -X POST -uadmin:admin "http://localhost:8080/alfresco/s/cmis/checkedout" -H "Content-Type:application/atom+xml;type=entry;charset=UTF-8" -d @/tmp/atomentry.xml > /tmp/checkout-result.xml
+
+# TODO check for errors (for instance because of document associations induced by onetimedownload)
+
+echo "Done"
