@@ -6,18 +6,17 @@
 ##########################################
 # Instructions:
 # Place this script in your ~/.gnome2/nautilus-scripts
-# Now an action appears in Nautilus' context menu.
+# Below, change "admin" to your Alfresco password:
+PASSWORD="admin"
+# Now Nautilus' context menu should have the Alfresco actions.
 ##########################################
 # TODO
 # - Show graphical feedback in case of error
 # - Get password from Nautilus
 ##########################################
-# CONFIGURATION
-PASSWORD="admin"
-##########################################
 
-#URI=${NAUTILUS_SCRIPT_SELECTED_URIS}
-URI="dav://admin@localhost:8080/alfresco/webdav/User%20Homes/leo/test.txt"
+URI=${NAUTILUS_SCRIPT_SELECTED_URIS}
+#URI="dav://admin@localhost:8080/alfresco/webdav/User%20Homes/leo/test.txt"
 #URI="dav://admin@localhost:8080/alfresco/webdav/t/AlfrescoLinuxMacCheckInOut/eclipse.sh"
 echo "Alfresco WebDAV URI: $URI"
 
