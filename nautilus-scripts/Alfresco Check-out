@@ -15,8 +15,8 @@ PASSWORD="admin"
 # - Get password from Nautilus
 ##########################################
 
-#URI=${NAUTILUS_SCRIPT_SELECTED_URIS}
-URI="dav://admin@localhost:8080/alfresco/webdav/User%20Homes/leo/test.txt"
+URI=${NAUTILUS_SCRIPT_SELECTED_URIS}
+#URI="dav://admin@localhost:8080/alfresco/webdav/User%20Homes/leo/test.txt"
 #URI="dav://admin@localhost:8080/alfresco/webdav/t/AlfrescoLinuxMacCheckInOut/eclipse.sh"
 echo "Alfresco WebDAV URI: $URI"
 
