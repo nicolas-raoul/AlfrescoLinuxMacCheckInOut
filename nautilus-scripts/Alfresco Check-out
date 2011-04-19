@@ -15,8 +15,8 @@ PASSWORD="admin"
 # - Get password from Nautilus
 ##########################################
 
-URI=${NAUTILUS_SCRIPT_SELECTED_URIS}
-#URI="dav://admin@localhost:8080/alfresco/webdav/User%20Homes/leo/test.txt"
+#URI=${NAUTILUS_SCRIPT_SELECTED_URIS}
+URI="dav://admin@localhost:8080/alfresco/webdav/User%20Homes/leo/test.txt"
 #URI="dav://admin@localhost:8080/alfresco/webdav/t/AlfrescoLinuxMacCheckInOut/eclipse.sh"
 echo "Alfresco WebDAV URI: $URI"
 
@@ -28,8 +28,9 @@ SERVER=$(echo $URI | sed -e "s/.*@//g" -e "s/\/.*//g")
 URL=$(echo $URI | sed -e "s/.*alfresco\/webdav\///g")
 URL="http://$SERVER/alfresco/s/cmis/p/$URL"
 echo "Alfresco CMIS URL: $URL"
-curl -u$USERNAME:$PASSWORD "$URL" > /tmp/output
-NODEREF=$(grep "<cmis:propertyId propertyDefinitionId=\"cmis:objectId\"" /tmp/output | sed -e "s/.*<cmis:value>//g" -e "s/<.*//g")
+TMPDIR=$(mktemp -d AlfrescoLinuxMacCheckInOut-XXXXX)
+curl -u$USERNAME:$PASSWORD "$URL" > $TMPDIR/output
+NODEREF=$(grep "<cmis:propertyId propertyDefinitionId=\"cmis:objectId\"" $TMPDIR/output | sed -e "s/.*<cmis:value>//g" -e "s/<.*//g")
 echo "Alfresco Noderef: $NODEREF"
 # "workspace://SpacesStore/ebc57ec5-e817-4aa4-9217-936b3f355048"
 
@@ -43,8 +44,9 @@ echo "<?xml version=\"1.0\" encoding=\"utf-8\"?>
 </cmis:properties>
 </cmisra:object>
 </entry>
-" > /tmp/atomentry.xml
+" > $TMPDIR/atomentry.xml
 
-curl -X POST -u$USERNAME:$PASSWORD "http://$SERVER/alfresco/s/cmis/checkedout" -H "Content-Type:application/atom+xml;type=entry;charset=UTF-8" -d @/tmp/atomentry.xml > /tmp/checkout-result.xml
+curl -X POST -u$USERNAME:$PASSWORD "http://$SERVER/alfresco/s/cmis/checkedout" -H "Content-Type:application/atom+xml;type=entry;charset=UTF-8" -d @$TMPDIR/atomentry.xml > $TMPDIR/checkout-result.xml
 
+rm -rf $TMPDIR
 echo "Done"
