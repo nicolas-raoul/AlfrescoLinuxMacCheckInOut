@@ -1,6 +1,6 @@
 #!/bin/sh
 ##########################################
-# Check-in an Alfresco document via Nautilus.
+# Checkin an Alfresco document via Nautilus.
 # 2011/04/15
 # Nicolas Raoul - Aegif
 ##########################################
@@ -15,8 +15,8 @@ PASSWORD="admin"
 # - Get password from Nautilus, or at least from the Check-out script
 ##########################################
 
-#URI=${NAUTILUS_SCRIPT_SELECTED_URIS}
-URI="dav://admin@localhost:8080/alfresco/webdav/User%20Homes/leo/test.txt%20(Working%20Copy)"
+URI=${NAUTILUS_SCRIPT_SELECTED_URIS}
+#URI="dav://admin@localhost:8080/alfresco/webdav/User%20Homes/leo/test.txt%20(Working%20Copy)"
 
 # If the user has clicked on the private working copy, get URI of original file instead
 URI=$(echo $URI | sed -e "s/%20(Working%20Copy)//g")
@@ -32,24 +32,16 @@ echo "Alfresco CMIS URL: $URL"
 TMPDIR=$(mktemp -d AlfrescoLinuxMacCheckInOut-XXXXX)
 echo "TMPDIR=$TMPDIR"
 curl -u$USERNAME:$PASSWORD "$URL" > $TMPDIR/output
-NODEREF=$(grep "<link rel=\"working-copy\"" $TMPDIR/output | sed -e "s/.*s\/cmis\/pwc\/s\///g" -e "s/\".*//g" -e "s/workspace:/workspace:\/\//g" -e "s/i\///g")
-echo "Alfresco Noderef: $NODEREF"
-# Example: "workspace://SpacesStore/ebc57ec5-e817-4aa4-9217-936b3f355048"
-exit
+PWC_NODEREF=$(grep "<link rel=\"working-copy\"" $TMPDIR/output | sed -e "s/.*i\///g" -e "s/\".*//g") 
+echo "Alfresco Private Working Copy Noderef: $PWC_NODEREF"
+# Example: "ebc57ec5-e817-4aa4-9217-936b3f355048"
 
 echo "<?xml version=\"1.0\" encoding=\"utf-8\"?>
-<entry xmlns=\"http://www.w3.org/2005/Atom\" xmlns:cmisra=\"http://docs.oasis-open.org/ns/cmis/restatom/200908/\" xmlns:cmis=\"http://docs.oasis-open.org/ns/cmis/core/200908/\">
-<cmisra:object>
-<cmis:properties>
-<cmis:propertyId propertyDefinitionId=\"cmis:objectId\">
-<cmis:value>${NODEREF}</cmis:value>
-</cmis:propertyId>
-</cmis:properties>
-</cmisra:object>
-</entry>
-" > $TMPDIR/atomentry.xml
+<entry xmlns=\"http://www.w3.org/2005/Atom\"/>
+" >> $TMPDIR/atomentry.xml
 
-curl -X PUT -u$USERNAME:$PASSWORD "http://$SERVER/alfresco/s/cmis/checkedout" -H "Content-Type:application/atom+xml;type=entry;charset=UTF-8" -d @$TMPDIR/atomentry.xml > $TMPDIR/checkout-result.xml
+set -x
+curl -X PUT -u$USERNAME:$PASSWORD "http://$SERVER/alfresco/s/cmis/pwc/i/$PWC_NODEREF?checkin=true" -H "Content-Type:application/atom+xml" -d @$TMPDIR/atomentry.xml > $TMPDIR/checkin-result.xml
 
-rm -rf $TMPDIR
+#rm -rf $TMPDIR
 echo "Done"
